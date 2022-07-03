@@ -136,4 +136,40 @@ select case
    else concat(n,' Leaf')
 end
 from BST order by N
--- 44 --
+-- 44 -- Given the table schemas below (represents a hierarchy), write a query to print the company_code, founder name, total number of lead managers, total number of senior managers, 
+-- total number of managers, and total number of employees. Order your output by ascending company_code.
+select 
+c.company_code,
+c.founder, 
+count(distinct e.lead_manager_code),
+count(distinct e.senior_manager_code),
+count(distinct e.manager_code),
+count(distinct e.employee_code)
+from company c
+inner join employee e
+on c.company_code = e.company_code
+group by c.company_code,c.founder
+order by c.company_code
+-- 45 -- You are given two tables: Students and Grades. 
+/*Ketty gives Eve a task to generate a report containing three columns: Name, Grade and Mark. 
+Ketty doesn't want the NAMES of those students who received a grade lower than 8. The report must be in descending order by grade 
+If there is more than one student with the same grade (8-10) assigned to them, 
+order those particular students by their name alphabetically. Finally, if the grade is lower than 8, use "NULL" as their name and list them by their grades in descending order. 
+If there is more than one student with the same grade (1-7) assigned to them, order those particular students by their marks in ascending order.
+Write a query to help Eve.*/
+select  iif(grade < 8,null, name), grade, marks
+from Students
+inner join grades 
+on marks between min_mark and max_mark
+order by grade desc, name
+-- another solution:
+select case
+   when grade < 8 then null
+   else name
+end , grade, marks
+from Students
+inner join grades on marks between min_mark and max_mark
+order by grade desc, name
+-- 46 -- Query the median of the Northern Latitudes (LAT_N) from STATION and round your answer to 4 decimal places.
+select top 1 format(PERCENTILE_CONT(0.5) within group (order by LAT_N desc) over(),'00.0000') as median
+from station
