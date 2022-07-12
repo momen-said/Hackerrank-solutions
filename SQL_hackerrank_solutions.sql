@@ -173,3 +173,49 @@ order by grade desc, name
 -- 46 -- Query the median of the Northern Latitudes (LAT_N) from STATION and round your answer to 4 decimal places.
 select top 1 format(PERCENTILE_CONT(0.5) within group (order by LAT_N desc) over(),'00.0000') as median
 from station
+-- 47 -- Julia just finished conducting a coding contest, and she needs your help assembling the leaderboard! 
+/*Write a query to print the respective hacker_id and name of hackers who achieved full scores for more than one challenge. 
+Order your output in descending order by the total number of challenges in which the hacker earned a full score. 
+If more than one hacker received full scores in same number of challenges, then sort them by ascending hacker_id.*/
+select h.hacker_id, h.name
+from submissions s
+inner join challenges c 
+on s.challenge_id = c.challenge_id
+inner join hackers h 
+on s.hacker_id = h.hacker_id
+inner join difficulty d
+on c.difficulty_level = d.difficulty_level 
+where s.score = d.score
+group by h.hacker_id, h.name
+having count(s.hacker_id) > 1
+order by count(s.hacker_id) desc, h.hacker_id
+-- 48 -- Harry Potter and his friends are at Ollivander's with Ron, finally replacing Charlie's old broken wand.
+/*Hermione decides the best way to choose is by determining the minimum number of gold galleons needed to buy each non-evil wand of high power and age.
+Write a query to print the id, age, coins_needed, and power of the wands that Ron's interested in, sorted in order of descending power. 
+If more than one wand has same power, sort the result in order of descending age.*/
+select w.id, p.age, w.coins_needed, w.power
+from wands w
+inner join Wands_Property p
+on w.code = p.code
+where is_evil = 0 and w.coins_needed in 
+(select min(coins_needed) from Wands w1 
+join Wands_Property p1 on w1.code = p1.code 
+where w1.power = w.power and p1.age = p.age) 
+order by w.power desc, p.age desc
+-- another solution:
+with harry_potter as
+(select w.id, p.age, w.coins_needed, w.power,
+row_number() over(PARTITION BY W.code, W.power ORDER BY W.coins_needed, W.power DESC)
+AS RowNumber
+from wands w
+inner join Wands_Property p 
+on W.code = p.code
+WHERE p.is_evil = 0)
+select id, age, coins_needed, power
+from harry_potter
+where RowNumber = 1
+order by power desc, age desc
+-- 49 -- 
+
+
+
