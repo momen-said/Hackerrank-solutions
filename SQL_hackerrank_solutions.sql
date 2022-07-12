@@ -205,17 +205,47 @@ order by w.power desc, p.age desc
 -- another solution:
 with harry_potter as
 (select w.id, p.age, w.coins_needed, w.power,
-row_number() over(PARTITION BY W.code, W.power ORDER BY W.coins_needed, W.power DESC)
-AS RowNumber
+row_number() over(PARTITION BY W.code, W.power ORDER BY W.coins_needed, W.power DESC) AS RowNumber
 from wands w
-inner join Wands_Property p 
-on W.code = p.code
+inner join Wands_Property p on W.code = p.code
 WHERE p.is_evil = 0)
 select id, age, coins_needed, power
 from harry_potter
 where RowNumber = 1
 order by power desc, age desc
--- 49 -- 
+-- 49 -- Julia asked her students to create some coding challenges. 
+/*Write a query to print the hacker_id, name, and the total number of challenges created by each student. 
+Sort your results by the total number of challenges in descending order. If more than one student created the same number of challenges, then sort the result by hacker_id. 
+If more than one student created the same number of challenges and the count is less than the maximum number of challenges created,
+then exclude those students from the result.*/
+select h.hacker_id, h.name, count(c.challenge_id) as count
+from hackers h
+inner join challenges c
+on h.hacker_id = c.hacker_id
+group by h.hacker_id, h.name
+having count(c.challenge_id) in 
+(select max(cnt.count) 
+from (select count(hacker_id) AS count from challenges group by hacker_id) cnt)
+or count(c.challenge_id) in
+(select cnt.count
+from (select count(hacker_id) AS count from challenges group by hacker_id) cnt
+group by cnt.count
+having count (cnt.count) = 1)
+order by count(c.challenge_id) desc, h.hacker_id
+-- 50 -- You are given a table, Projects, containing three columns: Task_ID, Start_Date and End_Date. 
+/*It is guaranteed that the difference between the End_Date and the Start_Date is equal to 1 day for each row in the table.
+If the End_Date of the tasks are consecutive, then they are part of the same project. 
+Samantha is interested in finding the total number of different projects completed.
+Write a query to output the start and end dates of projects listed by the number of days it took to complete the project in ascending order. 
+If there is more than one project that have the same number of completion days, then order by the start date of the project.*/
+with CTE_Projects as
+(select start_date, end_date, row_number() over(order by start_date) as rownumber
+ from projects)
+select min(start_date), max(end_date) 
+from CTE_Projects
+group by datediff(day, rownumber, end_date)
+order by DATEDIFF(DAY, MIN(Start_Date), MAX(End_Date)), min(start_date)
+-- 51 -- 
 
 
 
